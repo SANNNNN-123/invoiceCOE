@@ -62,7 +62,7 @@ const ExportActions = ({ issuedTo, grandTotal }) => {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md p-4 shadow-lg border-t z-50">
         <div className="max-w-sm mx-auto grid grid-cols-2 gap-2">
           <button
             onClick={generatePDF}
