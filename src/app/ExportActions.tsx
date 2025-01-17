@@ -70,11 +70,38 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     }
   };
 
-  const shareToWhatsApp = () => {
-    const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nThank you for your business!`;
-    const encodedText = encodeURIComponent(text);
-    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-    window.open(whatsappUrl, '_blank');
+  const shareToWhatsApp = async () => {
+    // Generate PDF if not already generated
+    if (!pdfInstance) {
+      await generatePDF();
+    }
+
+    if (pdfInstance) {
+      // Create a blob and temporary URL for the PDF
+      const pdfBlob = pdfInstance.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      const date = new Date().toISOString().slice(2, 8);
+      const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
+      const fileName = `Invoice${cleanName}_${date}.pdf`;
+      link.download = fileName;
+
+      // Create WhatsApp message with invoice details and download link
+      const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nDownload your invoice here: ${pdfUrl}\n\nThank you for your business!`;
+      const encodedText = encodeURIComponent(text);
+      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+      
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+
+      // Clean up the temporary URL after a delay
+      setTimeout(() => {
+        URL.revokeObjectURL(pdfUrl);
+      }, 60000); // Clean up after 1 minute
+    }
   };
 
   return (
