@@ -15,6 +15,7 @@ interface InvoiceItem {
 export default function Home() {
   const [issuedTo, setIssuedTo] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [newItem, setNewItem] = useState<InvoiceItem>({
     id: 1,
     description: "",
@@ -36,29 +37,21 @@ export default function Home() {
   };
 
   const removeItem = (id: number) => {
-    // Remove the item first
     const updatedItems = items.filter((item) => item.id !== id);
-    // Reassign IDs to maintain sequence
     const reorderedItems = updatedItems.map((item, index) => ({
       ...item,
       id: index + 1
     }));
     setItems(reorderedItems);
-    
-    // Update the newItem ID to be the next in sequence
     setNewItem({
       ...newItem,
       id: reorderedItems.length + 1
     });
   };
 
-  const calculateSubtotal = (qty: number, price: number) => {
-    return qty * price;
-  };
-
-  const calculateGrandTotal = () => {
-    return items.reduce((total, item) => total + calculateSubtotal(item.qty, item.price), 0);
-  };
+  const calculateSubtotal = (qty: number, price: number) => qty * price;
+  const calculateGrandTotal = () => 
+    items.reduce((total, item) => total + calculateSubtotal(item.qty, item.price), 0);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -66,30 +59,11 @@ export default function Home() {
     }
   };
 
-  // Generate empty rows
-  const emptyRows = () => {
-    const rows = [];
-    const emptyCellClass = "border border-gray-300 p-8";
-    for (let i = 0; i < 3; i++) {
-      rows.push(
-        <tr key={`empty-${i}`}>
-          <td className={emptyCellClass}></td>
-          <td className={emptyCellClass}></td>
-          <td className={emptyCellClass}></td>
-          <td className={emptyCellClass}></td>
-          <td className={emptyCellClass}></td>
-          <td className={emptyCellClass}></td>
-        </tr>
-      );
-    }
-    return rows;
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
+    <div className="min-h-screen bg-gray-300 p-4">
+      <div className="max-w-sm mx-auto space-y-6">
         {/* Input Form */}
-        <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
+        <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-6">Create Invoice</h2>
           <div className="space-y-6">
             <div>
@@ -104,167 +78,333 @@ export default function Home() {
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">Details :</label>
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-                <div className="md:col-span-5">
+              <div className="space-y-2">
                 <input
-                    type="text"
-                    placeholder="Description"
-                    value={newItem.description}
-                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                    onKeyPress={handleKeyPress}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  />
-                </div>
-                <div className="md:col-span-2">
+                  type="text"
+                  placeholder="Description"
+                  value={newItem.description}
+                  onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                  onKeyPress={handleKeyPress}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
                 <input
-                    type="number"
-                    placeholder="Qty"
-                    value={newItem.qty || ""}
-                    onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })}
-                    onKeyPress={handleKeyPress}
-                    min="0"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  />
-                </div>
-                <div className="md:col-span-3">
+                  type="number"
+                  placeholder="Quantity"
+                  value={newItem.qty || ""}
+                  onChange={(e) => setNewItem({ ...newItem, qty: Number(e.target.value) })}
+                  onKeyPress={handleKeyPress}
+                  min="0"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
                 <input
-                    type="number"
-                    placeholder="Price"
-                    value={newItem.price || ""}
-                    onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                    onKeyPress={handleKeyPress}
-                    min="0"
-                    step="0.01"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  />
-                </div>
-                <div className="md:col-span-2">
+                  type="number"
+                  placeholder="Price (RM)"
+                  value={newItem.price || ""}
+                  onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                  onKeyPress={handleKeyPress}
+                  min="0"
+                  step="0.01"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
                 <button
-                    onClick={addItem}
-                    className="w-full h-full flex items-center justify-center bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
-                  >
-                    <PlusCircle className="w-5 h-5" />
-                  </button>
-                </div>
+                  onClick={addItem}
+                  className="w-full p-2 flex items-center justify-center bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+                >
+                  <PlusCircle className="w-5 h-5 mr-2" />
+                  Add Item
+                </button>
+              </div>
+            </div>
+
+            {/* Payment Method Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method :</label>
+              <div className="space-x-4 flex items-center">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cash"
+                    checked={paymentMethod === "cash"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="form-radio h-4 w-4 text-teal-600"
+                  />
+                  <span className="ml-2">Cash</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="online"
+                    checked={paymentMethod === "online"}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="form-radio h-4 w-4 text-teal-600"
+                  />
+                  <span className="ml-2">Online</span>
+                </label>
               </div>
             </div>
           </div>
         </div>
 
         {/* Invoice Preview */}
-        <div id="invoice-content" className="bg-white p-6 md:p-12 rounded-lg shadow-md relative overflow-hidden min-h-[1000px]">
-          {/* Decorative corners */}
-          <div className="absolute top-0 left-0 w-24 md:w-32 h-24 md:h-32 bg-pink-200 -translate-x-12 md:-translate-x-16 -translate-y-12 md:-translate-y-16 transform rotate-45"></div>
-          <div className="absolute bottom-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-teal-600 translate-x-12 md:translate-x-16 translate-y-12 md:translate-y-16 transform rotate-45"></div>
+        <div 
+          id="invoice-content" 
+          className="bg-white p-6 max-w-sm mx-auto relative"
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            position: 'relative',
+            marginTop: '20px',
+            marginBottom: '20px',
+          }}
+        >
+          <div 
+            style={{
+              position: 'absolute',
+              top: '-10px',
+              left: 0,
+              right: 0,
+              height: '20px',
+              background: `repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 4px,
+                white 4px,
+                white 8px
+              )`,
+              filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.1))',
+            }}
+          />
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: '-10px',
+              left: 0,
+              right: 0,
+              height: '20px',
+              background: `repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 4px,
+                white 4px,
+                white 8px
+              )`,
+              filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.1))',
+            }}
+          />
 
-          <div className="relative">
-            <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-center">INVOICE COE 2025</h1>
-
-            <div className="relative">
-              <div className="grid grid-cols-3 gap-4 mb-12">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Date Issued</p>
-                  <p className="font-medium">{new Date().toLocaleDateString()}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Invoice No.</p>
-                  <p className="font-medium">INV-2025-001</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Issued To</p>
-                  <p className="font-medium">{issuedTo || "---"}</p>
-                </div>
+          {/* Header */}
+          <div className="mb-2">
+            <h1 className="text-2xl font-bold mb-4 text-center">INVOICE COE 2025</h1>
+            
+            <div className="flex justify-between text-sm">
+              <div className="space-y-1">
+                <p className="font-medium">Hospital Al-Sultan Abdullah</p>
+                <p>UiTM Puncak Alam</p>
+                <p>Malaysia</p>
+                <p>Issued To : <span className="font-bold">{issuedTo}</span></p>
               </div>
-            </div>
-
-            <div className="overflow-x-auto mb-12">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border border-gray-300 bg-gray-100 p-4 text-left">NO</th>
-                    <th className="border border-gray-300 bg-gray-100 p-4 text-left">DESCRIPTION</th>
-                    <th className="border border-gray-300 bg-gray-100 p-4 text-right">QTY</th>
-                    <th className="border border-gray-300 bg-gray-100 p-4 text-right">PRICE</th>
-                    <th className="border border-gray-300 bg-gray-100 p-4 text-right">SUBTOTAL</th>
-                    <th className="border border-gray-300 bg-gray-100 p-4 w-16"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id} className="group relative">
-                      <td className="border border-gray-300 p-4">{item.id}</td>
-                      <td className="border border-gray-300 p-4">{item.description}</td>
-                      <td className="border border-gray-300 p-4 text-right">{item.qty}</td>
-                      <td className="border border-gray-300 p-4 text-right">RM{item.price}</td>
-                      <td className="border border-gray-300 p-4 text-right">
-                        RM{calculateSubtotal(item.qty, item.price)}
-                      </td>
-                      {/* Delete button as an absolute positioned element */}
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:block text-red-500 hover:text-red-700 print:hidden"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </tr>
-                  ))}
-                  {emptyRows()}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={4} className="border border-gray-300 p-4 text-right font-medium">
-                      GRAND TOTAL
-                    </td>
-                    <td className="border border-gray-300 p-4 text-right font-medium">
-                      RM{calculateGrandTotal()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            <p className="text-xl font-bold mb-8 text-left">Thank You</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mb-4">
-              <div>
-                <h2 className="text-xl font-bold mb-4">Payment Information</h2>
-                <p>Affin Bank</p>
-                <p>206850008687</p>
-                <p>Nur Fatin Amalina Binti Zulkifli</p>
-              </div>
-              
-              <div className="text-center md:text-right">
-                <div className="inline-block">
-                  <div className="mb-2">
-                    <Image
-                      src="/signature.png"
-                      alt="Digital Signature"
-                      width={150}
-                      height={150}
-                      className="object-contain mx-auto"
-                    />
-                  </div>
-                  <div className="border-t border-black pt-2">
-                    <p className="font-medium">Nur Fatin Amalina</p>
-                    <p className="text-sm text-gray-600 text-center">Treasurer</p>
-                  </div>
-                </div>
+              <div className="text-right space-y-1 text-gray-600">
+                <p>{new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                })}</p>
+                <p>{new Date().toLocaleDateString('en-US', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: '2-digit',
+                })}</p>
+                <p>{new Date().toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}</p>
               </div>
             </div>
           </div>
-          
-          
 
+          {/* Dotted Line */}
+          <div className="border-t-4 border-dotted border-black my-2" />
+
+          {/* Invoice Info */}
+          <div className="text-sm text-center my-2">
+            <p className="font-medium">ORDER RECEIPT #{String(items.length + 1).padStart(3, '0')}</p>
+          </div>
+
+          {/* Dotted Line */}
+          <div className="border-t-4 border-dotted border-black my-2" />
+
+          {/* Items Table */}
+          <div className="my-4">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-2 text-sm font-bold mb-2 text-gray-700">
+              <div className="col-span-2">NO.</div>
+              <div className="col-span-5 text-center">ITEM</div>
+              <div className="col-span-2 text-center">QTY</div>
+              <div className="col-span-3 text-right">PRICE</div>
+            </div>
+
+            {/* Table Body */}
+            {items.map((item) => (
+              <div key={item.id} className="grid grid-cols-12 gap-2 text-sm py-1 text-gray-600 group">
+                <div className="col-span-2 flex items-center">
+                  #{item.id}
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
+                  </button>
+                </div>
+                <div className="col-span-5 text-center">{item.description}</div>
+                <div className="col-span-2 text-center">{item.qty}</div>
+                <div className="col-span-3 text-right">RM {item.price.toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Dotted Line */}
+          <div className="border-t-4 border-dotted border-black my-2" />
+
+          {/* Totals */}
+          <div className="text-sm space-y-1 my-4 text-gray-600">
+            <div className="grid grid-cols-2">
+              <div className="text-right pr-4">SUBTOTAL</div>
+              <div className="text-right">RM {calculateGrandTotal().toFixed(2)}</div>
+            </div>
+            <div className="grid grid-cols-2">
+              <div className="text-right pr-4">TAX</div>
+              <div className="text-right">RM 0.00</div>
+            </div>
+            <div className="grid grid-cols-2 font-bold text-gray-700">
+              <div className="text-right pr-4">TOTAL</div>
+              <div className="text-right">RM {calculateGrandTotal().toFixed(2)}</div>
+            </div>
+          </div>
+
+          {/* Dotted Line */}
+          <div className="border-t-4 border-dotted border-black my-2" />
+
+          {/* Payment Info */}
+          <div className="text-sm space-y-1 mb-4 text-gray-600">
+            <div className="grid grid-cols-2">
+              <div>Transaction Id</div>
+              <div className="text-right">#24521</div>
+            </div>
+            <div className="grid grid-cols-2">
+              <div>Payment Method</div>
+              <div className="text-right">{paymentMethod === 'cash' ? 'Cash' : 'Online Banking'}</div>
+            </div>
+            <div className="grid grid-cols-2">
+              <div>Bank Account</div>
+              <div className="text-right">206850008687</div>
+            </div>
+            <div className="grid grid-cols-2">
+              <div>Status</div>
+              <div className="text-right font-medium text-green-600">Approved</div>
+            </div>
+          </div>
+
+          {/* Dotted Line */}
+          <div className="border-t-4 border-dotted border-black my-2" />
+
+          {/* Barcode */}
+          <div className="flex justify-center mb-2">
+            <svg className="w-full" width="297px" height="60px" x="0px" y="0px" viewBox="0 0 297 60" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <rect x="0" y="0" width="297" height="60" style={{fill:"#ffffff"}}></rect>
+              <g transform="translate(10, 10)" style={{fill:"#000000"}}>
+                <rect x="0" y="0" width="2" height="40"></rect>
+                <rect x="3" y="0" width="1" height="40"></rect>
+                <rect x="6" y="0" width="1" height="40"></rect>
+                <rect x="11" y="0" width="1" height="40"></rect>
+                <rect x="14" y="0" width="2" height="40"></rect>
+                <rect x="17" y="0" width="1" height="40"></rect>
+                <rect x="22" y="0" width="1" height="40"></rect>
+                <rect x="27" y="0" width="2" height="40"></rect>
+                <rect x="30" y="0" width="1" height="40"></rect>
+                <rect x="33" y="0" width="1" height="40"></rect>
+                <rect x="36" y="0" width="4" height="40"></rect>
+                <rect x="41" y="0" width="1" height="40"></rect>
+                <rect x="44" y="0" width="1" height="40"></rect>
+                <rect x="47" y="0" width="2" height="40"></rect>
+                <rect x="53" y="0" width="1" height="40"></rect>
+                <rect x="55" y="0" width="1" height="40"></rect>
+                <rect x="58" y="0" width="4" height="40"></rect>
+                <rect x="64" y="0" width="1" height="40"></rect>
+                <rect x="66" y="0" width="1" height="40"></rect>
+                <rect x="69" y="0" width="1" height="40"></rect>
+                <rect x="74" y="0" width="2" height="40"></rect>
+                <rect x="77" y="0" width="1" height="40"></rect>
+                <rect x="80" y="0" width="2" height="40"></rect>
+                <rect x="84" y="0" width="3" height="40"></rect>
+                <rect x="88" y="0" width="1" height="40"></rect>
+                <rect x="93" y="0" width="1" height="40"></rect>
+                <rect x="95" y="0" width="2" height="40"></rect>
+                <rect x="99" y="0" width="1" height="40"></rect>
+                <rect x="103" y="0" width="4" height="40"></rect>
+                <rect x="108" y="0" width="1" height="40"></rect>
+                <rect x="110" y="0" width="4" height="40"></rect>
+                <rect x="115" y="0" width="3" height="40"></rect>
+                <rect x="119" y="0" width="1" height="40"></rect>
+                <rect x="121" y="0" width="1" height="40"></rect>
+                <rect x="123" y="0" width="3" height="40"></rect>
+                <rect x="128" y="0" width="2" height="40"></rect>
+                <rect x="132" y="0" width="2" height="40"></rect>
+                <rect x="135" y="0" width="3" height="40"></rect>
+                <rect x="139" y="0" width="1" height="40"></rect>
+                <rect x="143" y="0" width="1" height="40"></rect>
+                <rect x="145" y="0" width="1" height="40"></rect>
+                <rect x="149" y="0" width="2" height="40"></rect>
+                <rect x="154" y="0" width="1" height="40"></rect>
+                <rect x="156" y="0" width="3" height="40"></rect>
+                <rect x="162" y="0" width="2" height="40"></rect>
+                <rect x="165" y="0" width="1" height="40"></rect>
+                <rect x="167" y="0" width="3" height="40"></rect>
+                <rect x="173" y="0" width="2" height="40"></rect>
+                <rect x="176" y="0" width="1" height="40"></rect>
+                <rect x="178" y="0" width="3" height="40"></rect>
+                <rect x="184" y="0" width="2" height="40"></rect>
+                <rect x="187" y="0" width="1" height="40"></rect>
+                <rect x="189" y="0" width="3" height="40"></rect>
+                <rect x="195" y="0" width="2" height="40"></rect>
+                <rect x="198" y="0" width="1" height="40"></rect>
+                <rect x="200" y="0" width="3" height="40"></rect>
+                <rect x="206" y="0" width="2" height="40"></rect>
+                <rect x="209" y="0" width="1" height="40"></rect>
+                <rect x="212" y="0" width="2" height="40"></rect>
+                <rect x="215" y="0" width="3" height="40"></rect>
+                <rect x="220" y="0" width="1" height="40"></rect>
+                <rect x="223" y="0" width="3" height="40"></rect>
+                <rect x="228" y="0" width="2" height="40"></rect>
+                <rect x="231" y="0" width="2" height="40"></rect>
+                <rect x="235" y="0" width="3" height="40"></rect>
+                <rect x="240" y="0" width="1" height="40"></rect>
+                <rect x="242" y="0" width="2" height="40"></rect>
+                <rect x="246" y="0" width="1" height="40"></rect>
+                <rect x="248" y="0" width="3" height="40"></rect>
+                <rect x="253" y="0" width="2" height="40"></rect>
+                <rect x="259" y="0" width="1" height="40"></rect>
+                <rect x="262" y="0" width="1" height="40"></rect>
+                <rect x="264" y="0" width="2" height="40"></rect>
+                <rect x="269" y="0" width="3" height="40"></rect>
+                <rect x="273" y="0" width="1" height="40"></rect>
+                <rect x="275" y="0" width="2" height="40"></rect>
+              </g>
+            </svg>
+          </div>
+
+          {/* Thank You Message */}
+          <div className="text-center text-sm font-medium text-gray-700">
+            <p>THANK YOU FOR YOUR BUSINESS!</p>
+          </div>
         </div>
 
         {/* Add Export Actions */}
         <ExportActions 
-              issuedTo={issuedTo}
-              grandTotal={calculateGrandTotal()}
-            />
+          issuedTo={issuedTo}
+          grandTotal={calculateGrandTotal()}
+        />
       </div>
-
-      
     </div>
   );
 }

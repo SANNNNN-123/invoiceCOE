@@ -34,10 +34,8 @@ const ExportActions = ({ issuedTo, grandTotal }) => {
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
-      // Store PDF instance for later use
       setPdfInstance(pdf);
       
-      // Generate preview URL
       const pdfBlob = pdf.output('blob');
       const previewUrl = URL.createObjectURL(pdfBlob);
       setPdfPreviewUrl(previewUrl);
@@ -65,49 +63,59 @@ const ExportActions = ({ issuedTo, grandTotal }) => {
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t">
-        <div className="max-w-3xl mx-auto flex gap-4 justify-end">
+        <div className="max-w-sm mx-auto grid grid-cols-2 gap-2">
           <button
             onClick={generatePDF}
-            className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors"
+            className="flex items-center justify-center gap-2 bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-colors text-sm"
           >
-            <Download className="w-4 h-4" />
-            Export PDF
+            <Download className="w-5 h-5" />
+            Download PDF
           </button>
-          
+
           <button
             onClick={shareToWhatsApp}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            className="flex items-center justify-center gap-2 bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition-colors text-sm truncate"
           >
-            <Share2 className="w-4 h-4" />
-            Share WhatsApp
+            <Share2 className="w-5 h-5 flex-shrink-0" />
+            <span className="truncate">Share via WhatsApp</span>
           </button>
         </div>
       </div>
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogContent className="max-w-sm h-[70vh] p-4">
           <DialogHeader>
-            <DialogTitle>PDF Preview</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">Preview PDF</DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto bg-gray-100 rounded-lg">
             <iframe
               src={pdfPreviewUrl}
-              className="w-full h-full min-h-[60vh]"
+              className="w-full h-full min-h-[45vh]"
               title="PDF Preview"
             />
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPreview(false)}>
+          <DialogFooter className="gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPreview(false)}
+              className="flex-1"
+            >
               Cancel
             </Button>
-            <Button onClick={downloadPDF}>
-              Download PDF
+            <Button 
+              onClick={downloadPDF}
+              className="flex-1 bg-teal-600 hover:bg-teal-700"
+            >
+              Download
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Spacing for fixed buttons */}
+      <div className="h-24" />
     </>
   );
 };
