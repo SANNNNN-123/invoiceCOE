@@ -5,10 +5,15 @@ import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-const ExportActions = ({ issuedTo, grandTotal }) => {
+interface ExportActionsProps {
+  issuedTo: string;
+  grandTotal: number;
+}
+
+const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [pdfInstance, setPdfInstance] = useState(null);
+  const [pdfInstance, setPdfInstance] = useState<jsPDF | null>(null);
 
   const generatePDF = async () => {
     const invoice = document.getElementById('invoice-content');
