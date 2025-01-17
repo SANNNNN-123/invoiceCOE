@@ -60,10 +60,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-300 p-4">
+    <div className="min-h-screen p-4" style={{
+      background: `
+        radial-gradient(circle, #999999 1px, transparent 1px) 0 0 / 20px 20px,
+        #e5e7eb
+      `
+    }}>
       <div className="max-w-sm mx-auto space-y-6">
         {/* Input Form */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-6 rounded-lg shadow-xl">
           <h2 className="text-xl font-semibold mb-6">Create Invoice</h2>
           <div className="space-y-6">
             <div>
@@ -160,7 +165,7 @@ export default function Home() {
             minHeight: '130px',
             boxShadow: `
               inset 0 0 35px rgba(0,0,0,0.1),
-              3px 3px 5px rgba(0,0,0,0.1)
+              5px 5px 15px rgba(0,0,0,0.2)
             `,
             borderRadius: '2px'
           }}
@@ -172,14 +177,14 @@ export default function Home() {
           <div
             style={{
               position: 'absolute',
-              height: '2.5vmin',
-              top: '-3px',
+              height: '3vmin',
+              top: '-8px',
               width: '110%',
               left: '-5%',
               backgroundColor: '#dbd8be',
               borderRight: '1px dotted #b7b49d',
               borderLeft: '1px dotted #b7b49d',
-              opacity: 0.5,
+              opacity: 0.6,
               zIndex: 10,
               transform: 'rotate(-0.5deg)'
             }}
