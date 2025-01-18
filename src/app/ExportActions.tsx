@@ -96,51 +96,49 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     if (pdfInstance) {
       const date = new Date().toISOString().slice(2, 8);
       const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
-      pdfInstance.save(`Invoice${cleanName}_${date}.pdf`);
+      const fileName = `Invoice${cleanName}_${date}.pdf`;
+
+      // Check if running on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        // For iOS devices - create a temporary link with the PDF blob
+        const pdfBlob = pdfInstance.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      } else {
+        // For non-iOS devices - use regular save method
+        pdfInstance.save(fileName);
+      }
+      
       setShowPreview(false);
       URL.revokeObjectURL(pdfPreviewUrl);
     }
   };
 
-  const shareToWhatsApp = async () => {
+  const shareToWhatsApp = () => {
     if (!pdfUrl) {
-      await generatePDF();
+      // Generate PDF if not already generated
+      generatePDF();
       return;
     }
 
-    try {
-      // Get the PDF blob from the URL
-      const response = await fetch(pdfUrl);
-      const blob = await response.blob();
-      
-      // Create file from blob
-      const date = new Date().toISOString().slice(2, 8);
-      const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
-      const fileName = `Invoice${cleanName}_${date}.pdf`;
-      const file = new File([blob], fileName, { type: 'application/pdf' });
-
-      // Check if sharing is supported
-      if (navigator.share) {
-        await navigator.share({
-          title: `Invoice for ${issuedTo}`,
-          text: `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}`,
-          files: [file]
-        });
-      } else {
-        // Fallback to previous WhatsApp sharing method
-        const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nView PDF: ${pdfUrl}\n\nThank you for your business!`;
-        const encodedText = encodeURIComponent(text);
-        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-        window.open(whatsappUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      // Fallback to previous WhatsApp sharing method
-      const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nView PDF: ${pdfUrl}\n\nThank you for your business!`;
-      const encodedText = encodeURIComponent(text);
-      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-      window.open(whatsappUrl, '_blank');
-    }
+    const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nView PDF: ${pdfUrl}\n\nThank you for your business!`;
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
