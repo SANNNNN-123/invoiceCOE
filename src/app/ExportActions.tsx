@@ -96,33 +96,7 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     if (pdfInstance) {
       const date = new Date().toISOString().slice(2, 8);
       const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
-      const fileName = `Invoice${cleanName}_${date}.pdf`;
-
-      // Check if running on iOS
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-      if (isIOS) {
-        // For iOS devices - create a temporary link with the PDF blob
-        const pdfBlob = pdfInstance.output('blob');
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        
-        // Create temporary link and trigger download
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = fileName;
-        link.target = '_blank';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Cleanup
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-      } else {
-        // For non-iOS devices - use regular save method
-        pdfInstance.save(fileName);
-      }
-      
+      pdfInstance.save(`Invoice${cleanName}_${date}.pdf`);
       setShowPreview(false);
       URL.revokeObjectURL(pdfPreviewUrl);
     }
