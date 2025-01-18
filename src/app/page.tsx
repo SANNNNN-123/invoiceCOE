@@ -190,6 +190,23 @@ export default function Home() {
             }}
           />
 
+          {/* Bottom Tape */}
+          <div
+            style={{
+              position: 'absolute',
+              height: '3vmin',
+              bottom: '-8px',
+              width: '110%',
+              left: '-5%',
+              backgroundColor: '#dbd8be',
+              borderRight: '1px dotted #b7b49d',
+              borderLeft: '1px dotted #b7b49d',
+              opacity: 0.6,
+              zIndex: 10,
+              transform: 'rotate(0.5deg)'
+            }}
+          />
+
           {/* Paper Fold Effect */}
           <div
             style={{

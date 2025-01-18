@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Share2, X } from 'lucide-react';
+import { Download, Share2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -14,40 +14,111 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [pdfInstance, setPdfInstance] = useState<jsPDF | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(75);
 
   const generatePDF = async () => {
     const invoice = document.getElementById('invoice-content');
     if (!invoice) return;
 
     try {
+      // Create a wrapper div for centering
+      const wrapper = document.createElement('div');
+      wrapper.style.width = '595px'; // A4 width in pixels
+      wrapper.style.margin = '0 auto';
+      wrapper.style.padding = '40px 0'; // Add padding for better spacing
+      wrapper.style.backgroundColor = '#ffffff';
+
       const canvas = await html2canvas(invoice, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        windowWidth: 595, // A4 width
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.getElementById('invoice-content');
           if (clonedElement) {
+            // Preserve the paper texture and fold effects
+            clonedElement.style.margin = '0 auto';
+            clonedElement.style.width = '100%';
+            clonedElement.style.maxWidth = '500px'; // Slightly smaller than A4 for margins
             clonedElement.style.padding = '20px';
-            clonedElement.style.borderRadius = '0';
+            clonedElement.style.position = 'relative';
+            clonedElement.style.backgroundColor = '#ffffff';
+            
+            // Add paper texture
+            clonedElement.style.backgroundImage = `
+              linear-gradient(to right, rgba(0,0,0,0.02) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.02) 100%)
+            `;
+            
+            // Add fold effects
+            const foldEffect = document.createElement('div');
+            foldEffect.style.position = 'absolute';
+            foldEffect.style.top = '0';
+            foldEffect.style.left = '0';
+            foldEffect.style.width = '100%';
+            foldEffect.style.height = '100%';
+            foldEffect.style.pointerEvents = 'none';
+            foldEffect.style.background = `
+              linear-gradient(
+                rgba(255,255,255,0),
+                50%,
+                rgba(0,0,0,0.1),
+                51%,
+                rgba(255,255,255,0)
+              ),
+              linear-gradient(
+                to right,
+                rgba(255,255,255,0),
+                50%,
+                rgba(0,0,0,0.1),
+                51%,
+                rgba(255,255,255,0)
+              )
+            `;
+            foldEffect.style.zIndex = '3';
+            
+            clonedElement.appendChild(foldEffect);
+
+            // Remove any box shadows for cleaner PDF
             clonedElement.style.boxShadow = 'none';
+            clonedElement.style.borderRadius = '0';
           }
         }
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'mm',
+        unit: 'pt',
         format: 'a4',
         compress: true
       });
 
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imageWidth = imgProps.width;
+      const imageHeight = imgProps.height;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      // Calculate scale to fit height on one page (leaving margins)
+      const verticalMargin = 40; // Points
+      const availableHeight = pdfHeight - (verticalMargin * 2);
+      const heightRatio = availableHeight / imageHeight;
+
+      // Calculate width based on height ratio (maintain aspect ratio)
+      const scaledWidth = imageWidth * heightRatio;
+      const horizontalMargin = (pdfWidth - scaledWidth) / 2;
+
+      pdf.addImage(
+        imgData,
+        'PNG',
+        horizontalMargin,
+        verticalMargin,
+        scaledWidth,
+        availableHeight,
+        undefined,
+        'FAST'
+      );
       
       setPdfInstance(pdf);
       
@@ -70,38 +141,11 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     }
   };
 
-  const shareToWhatsApp = async () => {
-    // Generate PDF if not already generated
-    if (!pdfInstance) {
-      await generatePDF();
-    }
-
-    if (pdfInstance) {
-      // Create a blob and temporary URL for the PDF
-      const pdfBlob = pdfInstance.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      const date = new Date().toISOString().slice(2, 8);
-      const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
-      const fileName = `Invoice${cleanName}_${date}.pdf`;
-      link.download = fileName;
-
-      // Create WhatsApp message with invoice details and download link
-      const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nDownload your invoice here: ${pdfUrl}\n\nThank you for your business!`;
-      const encodedText = encodeURIComponent(text);
-      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-      
-      // Open WhatsApp
-      window.open(whatsappUrl, '_blank');
-
-      // Clean up the temporary URL after a delay
-      setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
-      }, 60000); // Clean up after 1 minute
-    }
+  const shareToWhatsApp = () => {
+    const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nThank you for your business!`;
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -127,30 +171,33 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
       </div>
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-sm h-[70vh] p-4">
+        <DialogContent className="max-w-sm h-[90vh] sm:h-[70vh] p-4 bg-white">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Preview PDF</DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto bg-gray-100 rounded-lg">
-            <iframe
-              src={pdfPreviewUrl}
-              className="w-full h-full min-h-[45vh]"
-              title="PDF Preview"
-            />
+          <div className="flex flex-col gap-2 h-full">
+            <div className="flex-1 overflow-auto bg-gray-100 rounded-lg">
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-full min-h-[60vh] sm:min-h-[45vh]"
+                title="PDF Preview"
+                style={{ zoom: "75%" }}
+              />
+            </div>
           </div>
           
-          <DialogFooter className="gap-2 mt-4">
+          <DialogFooter className="flex gap-2 mt-4">
             <Button 
               variant="outline" 
               onClick={() => setShowPreview(false)}
-              className="flex-1"
+              className="w-full"
             >
               Cancel
             </Button>
             <Button 
               onClick={downloadPDF}
-              className="flex-1 bg-teal-600 hover:bg-teal-700"
+              className="w-full bg-teal-600 hover:bg-teal-700"
             >
               Download
             </Button>

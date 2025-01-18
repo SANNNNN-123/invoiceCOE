@@ -6,6 +6,10 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Invoice COE',
+  icons: {
+    icon: './receipt.ico',
+    shortcut: './receipt.ico',
+  }
 };
 
 export default function RootLayout({
