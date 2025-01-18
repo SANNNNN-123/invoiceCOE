@@ -96,14 +96,17 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     if (pdfInstance) {
       const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
       const fileName = `Invoice${cleanName}.pdf`;
-
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-      if (isIOS) {
-        // ... rest of iOS handling ...
-      } else {
-        pdfInstance.save(fileName);
-      }
+      
+      // Create a link element and trigger download
+      const pdfBlob = pdfInstance.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
       setShowPreview(false);
       URL.revokeObjectURL(pdfPreviewUrl);
