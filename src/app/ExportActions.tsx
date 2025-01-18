@@ -94,9 +94,17 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
 
   const downloadPDF = () => {
     if (pdfInstance) {
-      const date = new Date().toISOString().slice(2, 8);
       const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
-      pdfInstance.save(`Invoice${cleanName}_${date}.pdf`);
+      const fileName = `Invoice${cleanName}.pdf`;
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        // ... rest of iOS handling ...
+      } else {
+        pdfInstance.save(fileName);
+      }
+      
       setShowPreview(false);
       URL.revokeObjectURL(pdfPreviewUrl);
     }

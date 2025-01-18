@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, ReceiptText } from "lucide-react";
 import Image from "next/image";
 import ExportActions from './ExportActions';
 
@@ -69,7 +69,17 @@ export default function Home() {
       <div className="max-w-sm mx-auto space-y-6">
         {/* Input Form */}
         <div className="bg-white p-6 rounded-lg shadow-xl">
-          <h2 className="text-xl font-bold mb-6 text-center">Create Invoice</h2>
+          <div className="flex items-center justify-center space-x-4 mb-2">
+              <div className="p-2 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg">
+                <ReceiptText className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">
+                  Create Invoice
+                </h2>
+              </div>
+            </div>
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-6" />
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">Issued To :</label>
