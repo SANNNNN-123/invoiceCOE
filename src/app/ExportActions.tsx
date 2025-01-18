@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { MinusCircle, PlusCircle } from 'lucide-react';
 
 interface ExportActionsProps {
   issuedTo: string;
@@ -21,64 +22,22 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     if (!invoice) return;
 
     try {
-      // Create a wrapper div for centering
-      const wrapper = document.createElement('div');
-      wrapper.style.width = '595px'; // A4 width in pixels
-      wrapper.style.margin = '0 auto';
-      wrapper.style.padding = '40px 0'; // Add padding for better spacing
-      wrapper.style.backgroundColor = '#ffffff';
-
       const canvas = await html2canvas(invoice, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 595, // A4 width
         onclone: (clonedDoc) => {
           const clonedElement = clonedDoc.getElementById('invoice-content');
           if (clonedElement) {
-            // Preserve the paper texture and fold effects
+            // Keep original styling
             clonedElement.style.margin = '0 auto';
             clonedElement.style.width = '100%';
-            clonedElement.style.maxWidth = '500px'; // Slightly smaller than A4 for margins
+            clonedElement.style.maxWidth = '500px';
             clonedElement.style.padding = '20px';
             clonedElement.style.position = 'relative';
             clonedElement.style.backgroundColor = '#ffffff';
             
-            // Add paper texture
-            clonedElement.style.backgroundImage = `
-              linear-gradient(to right, rgba(0,0,0,0.02) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.02) 100%)
-            `;
-            
-            // Add fold effects
-            const foldEffect = document.createElement('div');
-            foldEffect.style.position = 'absolute';
-            foldEffect.style.top = '0';
-            foldEffect.style.left = '0';
-            foldEffect.style.width = '100%';
-            foldEffect.style.height = '100%';
-            foldEffect.style.pointerEvents = 'none';
-            foldEffect.style.background = `
-              linear-gradient(
-                rgba(255,255,255,0),
-                50%,
-                rgba(0,0,0,0.1),
-                51%,
-                rgba(255,255,255,0)
-              ),
-              linear-gradient(
-                to right,
-                rgba(255,255,255,0),
-                50%,
-                rgba(0,0,0,0.1),
-                51%,
-                rgba(255,255,255,0)
-              )
-            `;
-            foldEffect.style.zIndex = '3';
-            
-            clonedElement.appendChild(foldEffect);
-
             // Remove any box shadows for cleaner PDF
             clonedElement.style.boxShadow = 'none';
             clonedElement.style.borderRadius = '0';
@@ -171,23 +130,28 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
       </div>
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-sm h-[90vh] sm:h-[70vh] p-4 bg-white">
-          <DialogHeader>
+        <DialogContent className="max-w-sm h-[80vh] sm:h-[70vh] p-2 sm:p-4 bg-white">
+          <DialogHeader className="mb-2">
             <DialogTitle className="text-lg font-semibold">Preview PDF</DialogTitle>
           </DialogHeader>
           
           <div className="flex flex-col gap-2 h-full">
-            <div className="flex-1 overflow-auto bg-gray-100 rounded-lg">
+            <div className="flex-1 overflow-auto rounded-lg">
               <iframe
                 src={pdfPreviewUrl}
-                className="w-full h-full min-h-[60vh] sm:min-h-[45vh]"
+                className="w-full h-full min-h-[45vh] sm:min-h-[45vh]"
                 title="PDF Preview"
-                style={{ zoom: "75%" }}
+                style={{ 
+                  transform: `scale(${zoomLevel / 100})`,
+                  transformOrigin: 'top left',
+                  width: `${(100 / (zoomLevel / 100))}%`,
+                  backgroundColor: 'white' 
+                }}
               />
             </div>
           </div>
           
-          <DialogFooter className="flex gap-2 mt-4">
+          <DialogFooter className="flex gap-2 mt-2 sm:mt-4">
             <Button 
               variant="outline" 
               onClick={() => setShowPreview(false)}

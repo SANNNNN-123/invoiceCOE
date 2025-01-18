@@ -69,7 +69,7 @@ export default function Home() {
       <div className="max-w-sm mx-auto space-y-6">
         {/* Input Form */}
         <div className="bg-white p-6 rounded-lg shadow-xl">
-          <h2 className="text-xl font-semibold mb-6">Create Invoice</h2>
+          <h2 className="text-xl font-bold mb-6 text-center">Create Invoice</h2>
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">Issued To :</label>
@@ -177,8 +177,8 @@ export default function Home() {
           <div
             style={{
               position: 'absolute',
-              height: '3vmin',
-              top: '-8px',
+              height: '20px',
+              top: '-10px',
               width: '110%',
               left: '-5%',
               backgroundColor: '#dbd8be',
@@ -194,8 +194,8 @@ export default function Home() {
           <div
             style={{
               position: 'absolute',
-              height: '3vmin',
-              bottom: '-8px',
+              height: '20px',
+              bottom: '-10px',
               width: '110%',
               left: '-5%',
               backgroundColor: '#dbd8be',
