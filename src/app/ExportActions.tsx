@@ -16,6 +16,7 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [pdfInstance, setPdfInstance] = useState<jsPDF | null>(null);
   const [zoomLevel, setZoomLevel] = useState(75);
+  const [pdfUrl, setPdfUrl] = useState<string>('');
 
   const generatePDF = async () => {
     const invoice = document.getElementById('invoice-content');
@@ -84,6 +85,7 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
       const pdfBlob = pdf.output('blob');
       const previewUrl = URL.createObjectURL(pdfBlob);
       setPdfPreviewUrl(previewUrl);
+      setPdfUrl(previewUrl);
       setShowPreview(true);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -100,11 +102,45 @@ const ExportActions = ({ issuedTo, grandTotal }: ExportActionsProps) => {
     }
   };
 
-  const shareToWhatsApp = () => {
-    const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nThank you for your business!`;
-    const encodedText = encodeURIComponent(text);
-    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-    window.open(whatsappUrl, '_blank');
+  const shareToWhatsApp = async () => {
+    if (!pdfUrl) {
+      await generatePDF();
+      return;
+    }
+
+    try {
+      // Get the PDF blob from the URL
+      const response = await fetch(pdfUrl);
+      const blob = await response.blob();
+      
+      // Create file from blob
+      const date = new Date().toISOString().slice(2, 8);
+      const cleanName = issuedTo?.replace(/\s+/g, '') || 'Untitled';
+      const fileName = `Invoice${cleanName}_${date}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Check if sharing is supported
+      if (navigator.share) {
+        await navigator.share({
+          title: `Invoice for ${issuedTo}`,
+          text: `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}`,
+          files: [file]
+        });
+      } else {
+        // Fallback to previous WhatsApp sharing method
+        const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nView PDF: ${pdfUrl}\n\nThank you for your business!`;
+        const encodedText = encodeURIComponent(text);
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+        window.open(whatsappUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback to previous WhatsApp sharing method
+      const text = `Invoice details:\nIssued to: ${issuedTo}\nTotal Amount: RM${grandTotal}\n\nView PDF: ${pdfUrl}\n\nThank you for your business!`;
+      const encodedText = encodeURIComponent(text);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   return (
