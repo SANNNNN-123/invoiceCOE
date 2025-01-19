@@ -271,10 +271,10 @@ export default function Home() {
                   <p>{new Date().toLocaleDateString('en-US', {
                     weekday: 'long',
                   })}</p>
-                  <p>{new Date().toLocaleDateString('en-US', {
+                  <p>{new Date().toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: '2-digit',
-                    year: '2-digit',
+                    year: 'numeric',
                   })}</p>
                   <p>{new Date().toLocaleTimeString('en-US', {
                     hour: '2-digit',
